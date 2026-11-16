@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ultimate Ludo Pro 4.0</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+ --bg:#101827;
+ --panel:#1c2940;
+ --text:#fff;
+ --accent:#ffca28;
+ --border:#34445e;
+}
+
+body{
+ background:var(--bg);
+ color:var(--text);
+ font-family:Arial,sans-serif;
+ text-align:center;
+ min-height:100vh;
+ transition:.3s;
+}
+
+body.light{
+ --bg:#edf2f7;
+ --panel:#fff;
+ --text:#182235;
+ --border:#d6dfeb;
+}
+
+header{
+ background:var(--panel);
+ padding:17px;
+ border-bottom:2px solid var(--accent);
+ font-size:24px;
+ font-weight:bold;
+ color:var(--accent);
+}
+
+.container{
+ max-width:700px;
+ margin:auto;
+ padding:12px;
+}
+
+.panel{
+ background:var(--panel);
+ border:1px solid var(--border);
+ border-radius:15px;
+ padding:15px;
+ margin:12px 0;
+}
+
+h2{margin-bottom:15px}
+
+input,select{
+ width:95%;
+ max-width:350px;
+ padding:12px;
+ margin:6px;
+ border-radius:9px;
+ border:1px solid var(--border);
+ font-size:16px;
+ background:var(--bg);
+ color:var(--text);
+}
+
+button{
+ padding:12px 17px;
+ border:0;
+ border-radius:9px;
+ background:var(--accent);
+ color:#172033;
+ font-weight:bold;
+ font-size:15px;
+ cursor:pointer;
+ margin:5px;
+}
+
+button:disabled{
+ opacity:.45;
+ cursor:not-allowed;
+}
+
+button:focus-visible,input:focus-visible,select:focus-visible{
+ outline:3px solid #60a5fa;
+ outline-offset:2px;
+}
+
+.hidden{display:none!important}
+
+#board{
+ width:min(94vw,510px);
+ aspect-ratio:1;
+ margin:15px auto;
+ display:grid;
+ grid-template-columns:repeat(15,1fr);
+ grid-template-rows:repeat(15,1fr);
+ background:white;
+ border:5px solid white;
+ border-radius:5px;
+ overflow:hidden;
+}
+
+.cell{
+ position:relative;
+ border:1px solid #d1d5db;
+ background:#fff;
+}
+
+.base-red{background:#fecaca}
+.base-green{background:#bbf7d0}
+.base-yellow{background:#fef08a}
+.base-blue{background:#bfdbfe}
+
+.path{background:#fff!important}
+
+.lane-red{background:#ef4444!important}
+.lane-green{background:#22c55e!important}
+.lane-yellow{background:#eab308!important}
+.lane-blue{background:#3b82f6!important}
+
+.center{
+ background:conic-gradient(
+ #ef4444 0deg 90deg,
+ #22c55e 90deg 180deg,
+ #eab308 180deg 270deg,
+ #3b82f6 270deg 360deg
+ )!important;
+}
+
+.token{
+ width:90%;
+ height:90%;
+ position:absolute;
+ top:5%;
+ left:5%;
+ border:2px solid white;
+ border-radius:50%;
+ z-index:5;
+ color:white;
+ font-size:11px;
+ font-weight:bold;
+ box-shadow:0 2px 4px #333;
+ padding:0;
+}
+
+.token.red{background:#dc2626}
+.token.green{background:#16a34a}
+.token.yellow{background:#ca8a04}
+.token.blue{background:#2563eb}
+
+.token:disabled{opacity:1}
+
+#dice{
+ font-size:65px;
+ margin:10px;
+}
+
+#status{
+ color:var(--accent);
+ font-size:19px;
+ margin:12px;
+ font-weight:bold;
+}
+
+.player{
+ display:inline-block;
+ padding:9px;
+ margin:4px;
+ background:var(--bg);
+ border:2px solid var(--border);
+ border-radius:9px;
+ font-size:13px;
+}
+
+.active{
+ border-color:var(--accent);
+ box-shadow:0 0 8px var(--accent);
+}
+
+#message{
+ min-height:25px;
+ color:#22c55e;
+ font-weight:bold;
+ margin:8px;
+}
+
+#result{
+ font-size:22px;
+ color:var(--accent);
+ margin:10px;
+}
+
+@media(max-width:400px){
+ header{font-size:19px}
+ .container{padding:5px}
+ #board{width:96vw}
+ button{padding:11px}
+}
+</style>
+</head>
+
+<body>
+
+<header>🏆 ULTIMATE LUDO PRO 4.0</header>
+
+<div class="container">
+
+<section id="menu" class="panel">
+
+<h2>🎮 Welcome To Ludo</h2>
+
+<p>अपना गेम मोड चुनें</p>
+
+<select id="mode">
+<option value="ai">🤖 Play With AI</option>
+<option value="local">👥 Local Multiplayer</option>
+</select>
+
+<select id="count">
+<option value="1">1 Player + 3 AI</option>
+<option value="2">2 Players</option>
+<option value="3">3 Players</option>
+<option value="4">4 Players</option>
+</select>
+
+<select id="level">
+<option value="easy">AI Easy</option>
+<option value="medium">AI Medium</option>
+<option value="hard">AI Hard</option>
+</select>
+
+<h3>✏️ Player Names</h3>
+
+<div id="nameInputs"></div>
+
+<br>
+
+<button onclick="startGame()">🚀 START GAME</button>
+
+<br><br>
+
+<button onclick="toggleTheme()">🌙 Theme Change</button>
+
+</section>
+
+<section id="game" class="hidden">
+
+<div class="panel">
+
+<div id="players"></div>
+
+<div id="status">Player Turn</div>
+
+<div id="dice">🎲</div>
+
+<button id="roll" onclick="rollDice()">ROLL DICE</button>
+
+<div id="message" aria-live="polite"></div>
+
+</div>
+
+<div id="board"></div>
+
+<div class="panel">
+
+<h3>🏆 Scoreboard</h3>
+
+<div id="scores"></div>
+
+<button onclick="restartGame()">🔄 Restart</button>
+
+<button onclick="saveGame()">💾 Save Game</button>
+
+<button onclick="backMenu()">🏠 Menu</button>
+
+<button onclick="toggleTheme()">🌙 Theme</button>
+
+</div>
+
+</section>
+
+</div>
+
+<script>
+
+"use strict";
+
+const COLORS=["red","green","yellow","blue"];
+
+const DEFAULT_NAMES=["Raja","Aman","Rahul","Aryan"];
+
+const FACES=["","⚀","⚁","⚂","⚃","⚄","⚅"];
+
+const TRACK=[
+[6,1],[6,2],[6,3],[6,4],[6,5],
+[5,6],[4,6],[3,6],[2,6],[1,6],[0,6],
+[0,7],[0,8],
+[1,8],[2,8],[3,8],[4,8],[5,8],
+[6,9],[6,10],[6,11],[6,12],[6,13],[6,14],
+[7,14],[8,14],
+[8,13],[8,12],[8,11],[8,10],[8,9],
+[9,8],[10,8],[11,8],[12,8],[13,8],[14,8],
+[14,7],[14,6],
+[13,6],[12,6],[11,6],[10,6],[9,6],
+[8,5],[8,4],[8,3],[8,2],[8,1],[8,0],
+[7,0],[6,0]
+];
+
+const START=[0,13,26,39];
+
+const SAFE=[0,8,13,21,26,34,39,47];
+
+const LANES=[
+[[5,7],[4,7],[3,7],[2,7],[1,7],[6,7]],
+[[7,9],[7,10],[7,11],[7,12],[7,13],[7,6]],
+[[9,7],[10,7],[11,7],[12,7],[13,7],[8,7]],
+[[7,5],[7,4],[7,3],[7,2],[7,1],[7,8]]
+];
+
+const YARDS=[
+[[1,1],[1,4],[4,1],[4,4]],
+[[1,10],[1,13],[4,10],[4,13]],
+[[10,10],[10,13],[13,10],[13,13]],
+[[10,1],[10,4],[13,1],[13,4]]
+];
+
+let players=[];
+let current=0;
+let dice=0;
+let rolling=false;
+let finished=false;
+let sixCount=0;
+let scores=JSON.parse(localStorage.getItem("ultimateLudoScores")||"{}");
+
+const board=document.getElementById("board");
+
+function setupNames(){
+
+let n=Number(document.getElementById("count").value);
+
+let html="";
+
+for(let i=0;i<n;i++){
+
+html+=`
+<input id="playerName${i}"
+value="${DEFAULT_NAMES[i]}"
+placeholder="Player ${i+1} Name">
+`;
+
+}
+
+document.getElementById("nameInputs").innerHTML=html;
+
+}
+
+setupNames();
+
+document.getElementById("count").onchange=setupNames;
+
+function cell(r,c){
+
+return document.getElementById(`c${r}_${c}`);
+
+}
+
+function createBoard(){
+
+board.innerHTML="";
+
+for(let r=0;r<15;r++){
+
+for(let c=0;c<15;c++){
+
+let d=document.createElement("div");
+
+d.className="cell";
+
+d.id=`c${r}_${c}`;
+
+if(r<6&&c<6)d.classList.add("base-red");
+if(r<6&&c>8)d.classList.add("base-green");
+if(r>8&&c>8)d.classList.add("base-yellow");
+if(r>8&&c<6)d.classList.add("base-blue");
+
+board.appendChild(d);
+
+}
+
+}
+
+TRACK.forEach(([r,c])=>cell(r,c).classList.add("path"));
+
+LANES.forEach((lane,i)=>{
+
+lane.forEach(([r,c])=>{
+
+cell(r,c).classList.add("lane-"+COLORS[i]);
+
+});
+
+});
+
+for(let r=6;r<=8;r++){
+
+for(let c=6;c<=8;c++){
+
+cell(r,c).classList.add("center");
+
+}
+
+}
+
+}
+
+function startGame(){
+
+let count=Number(document.getElementById("count").value);
+
+let mode=document.getElementById("mode").value;
+
+players=[];
+
+for(let i=0;i<4;i++){
+
+let active=mode==="local"?i<count:(i<count);
+
+if(!active)continue;
+
+let input=document.getElementById("playerName"+i);
+
+players.push({
+
+name:input?.value.trim()||DEFAULT_NAMES[i],
+
+color:COLORS[i],
+
+index:i,
+
+ai:mode==="ai"&&i!==0,
+
+tokens:[-1,-1,-1,-1]
+
+});
+
+}
+
+if(mode==="ai"&&count===1){
+
+players=[players[0]];
+
+for(let i=1;i<4;i++){
+
+players.push({
+
+name:DEFAULT_NAMES[i],
+
+color:COLORS[i],
+
+index:i,
+
+ai:true,
+
+tokens:[-1,-1,-1,-1]
+
+});
+
+}
+
+}
+
+current=0;
+dice=0;
+rolling=false;
+finished=false;
+sixCount=0;
+
+document.getElementById("menu").classList.add("hidden");
+document.getElementById("game").classList.remove("hidden");
+
+createBoard();
+render();
+updatePlayers();
+updateStatus();
+updateScores();
+
+}
+
+function globalPos(p,step){
+
+return (START[p.index]+step)%52;
+
+}
+
+function getPos(p,t){
+
+let step=p.tokens[t];
+
+if(step===-1)return YARDS[p.index][t];
+
+if(step<=50){
+
+return TRACK[globalPos(p,step)];
+
+}
+
+return LANES[p.index][step-51];
+
+}
+
+function render(){
+
+document.querySelectorAll(".token").forEach(e=>e.remove());
+
+players.forEach((p,pi)=>{
+
+p.tokens.forEach((step,ti)=>{
+
+let [r,c]=getPos(p,ti);
+
+let target=cell(r,c);
+
+let b=document.createElement("button");
+
+b.className="token "+p.color;
+
+b.textContent=ti+1;
+
+b.title=p.name+" गोटी "+(ti+1);
+
+b.disabled=pi!==current||!rolling||p.ai;
+
+b.onclick=()=>moveToken(pi,ti);
+
+target.appendChild(b);
+
+});
+
+});
+
+}
+
+function updatePlayers(){
+
+let html="";
+
+players.forEach((p,i)=>{
+
+html+=`
+<div class="player ${i===current?"active":""}">
+${p.name} ${p.ai?"🤖":"👤"}
+<br>${p.color.toUpperCase()}
+</div>`;
+
+});
+
+document.getElementById("players").innerHTML=html;
+
+}
+
+function updateStatus(){
+
+let p=players[current];
+
+document.getElementById("status").textContent=
+"🎯 "+p.name+" की बारी "+(p.ai?"🤖":"👤");
+
+document.getElementById("roll").disabled=
+rolling||p.ai||finished;
+
+updatePlayers();
+
+}
+
+function validMoves(p){
+
+let list=[];
+
+p.tokens.forEach((step,i)=>{
+
+if(step===-1){
+
+if(dice===6)list.push(i);
+
+}else if(step+dice<=56){
+
+list.push(i);
+
+}
+
+});
+
+return list;
+
+}
+
+function rollDice(){
+
+if(rolling||finished||players[current].ai)return;
+
+roll();
+
+}
+
+function roll(){
+
+if(rolling||finished)return;
+
+rolling=true;
+
+let p=players[current];
+
+let n=0;
+
+let timer=setInterval(()=>{
+
+dice=Math.floor(Math.random()*6)+1;
+
+document.getElementById("dice").textContent=FACES[dice];
+
+n++;
+
+if(n>=12){
+
+clearInterval(timer);
+
+processRoll();
+
+}
+
+},75);
+
+}
+
+function processRoll(){
+
+let p=players[current];
+
+if(dice===6){
+
+sixCount++;
+
+}else{
+
+sixCount=0;
+
+}
+
+if(sixCount>=3){
+
+document.getElementById("message").textContent=
+"तीन बार छह! चाल रद्द हुई।";
+
+rolling=false;
+
+setTimeout(nextTurn,1000);
+
+return;
+
+}
+
+let moves=validMoves(p);
+
+if(moves.length===0){
+
+document.getElementById("message").textContent=
+"कोई चाल उपलब्ध नहीं है।";
+
+rolling=false;
+
+setTimeout(nextTurn,1000);
+
+return;
+
+}
+
+if(p.ai){
+
+let choice=chooseAI(p,moves);
+
+setTimeout(()=>moveToken(current,choice),800);
+
+}else{
+
+document.getElementById("message").textContent=
+"अपनी गोटी चुनें।";
+
+render();
+
+}
+
+}
+
+function chooseAI(p,moves){
+
+let level=document.getElementById("level").value;
+
+let best=moves[0];
+let bestScore=-Infinity;
+
+for(let t of moves){
+
+let old=p.tokens[t];
+
+let next=old===-1?0:old+dice;
+
+let score=Math.random()*2;
+
+if(next===56)score+=1000;
+
+if(old===-1)score+=15;
+
+if(next>0&&next<=50){
+
+let global=globalPos(p,next);
+
+if(SAFE.includes(global))score+=10;
+
+let [r,c]=TRACK[global];
+
+for(let op of players){
+
+if(op.index===p.index)continue;
+
+op.tokens.forEach(os=>{
+
+if(os<0||os>50)return;
+
+let [orow,ocol]=TRACK[globalPos(op,os)];
+
+if(r===orow&&c===ocol){
+
+score+=level==="hard"?100:
+level==="medium"?60:20;
+
+}
+
+});
+
+});
+
+}
+
+if(level==="hard")score+=next*.4;
+if(level==="medium")score+=next*.2;
+
+if(score>bestScore){
+
+bestScore=score;
+best=t;
+
+}
+
+}
+
+return best;
+
+}
+
+function moveToken(pi,ti){
+
+if(finished||pi!==current||!rolling)return;
+
+let p=players[pi];
+
+let old=p.tokens[ti];
+
+if(old===-1&&dice!==6)return;
+
+let next=old===-1?0:old+dice;
+
+if(next>56)return;
+
+p.tokens[ti]=next;
+
+let captured=false;
+
+if(next<=50){
+
+let global=globalPos(p,next);
+
+if(!SAFE.includes(global)){
+
+let [r,c]=TRACK[global];
+
+players.forEach(op=>{
+
+if(op.index===p.index)return;
+
+op.tokens.forEach((os,oi)=>{
+
+if(os<0||os>50)return;
+
+let [orow,ocol]=TRACK[globalPos(op,os)];
+
+if(r===orow&&c===ocol){
+
+op.tokens[oi]=-1;
+captured=true;
+
+}
+
+});
+
+});
+
+}
+
+}
+
+render();
+
+if(p.tokens.every(s=>s===56)){
+
+finishGame(p);
+
+return;
+
+}
+
+document.getElementById("message").textContent=
+captured?"🎉 विरोधी की गोटी कट गई!":
+next===56?"🏠 गोटी घर पहुँच गई!":"";
+
+let bonus=dice===6||captured||next===56;
+
+rolling=false;
+
+if(bonus){
+
+document.getElementById("message").textContent+=" अगली चाल भी आपकी है!";
+
+updateStatus();
+
+if(p.ai){
+
+setTimeout(()=>roll(),900);
+
+}
+
+}else{
+
+nextTurn();
+
+}
+
+}
+
+function nextTurn(){
+
+if(finished)return;
+
+rolling=false;
+dice=0;
+sixCount=0;
+
+current=(current+1)%players.length;
+
+document.getElementById("dice").textContent="🎲";
+
+document.getElementById("message").textContent="";
+
+updateStatus();
+
+if(players[current].ai){
+
+setTimeout(()=>{
+
+if(!finished)roll();
+
+},900);
+
+}
+
+}
+
+function finishGame(p){
+
+finished=true;
+rolling=false;
+
+scores[p.name]=(scores[p.name]||0)+1;
+
+localStorage.setItem("ultimateLudoScores",JSON.stringify(scores));
+
+document.getElementById("status").textContent=
+"🏆 "+p.name+" विजेता हैं!";
+
+document.getElementById("message").textContent=
+"🎉 CONGRATULATIONS! 🎉";
+
+document.getElementById("roll").disabled=true;
+
+updateScores();
+
+}
+
+function updateScores(){
+
+let html="";
+
+Object.entries(scores).forEach(([name,score])=>{
+
+html+=`<p>🏆 ${name}: ${score} जीत</p>`;
+
+});
+
+document.getElementById("scores").innerHTML=
+html||"अभी कोई जीत नहीं।";
+
+}
+
+function restartGame(){
+
+if(confirm("क्या आप गेम Restart करना चाहते हैं?")){
+
+document.getElementById("game").classList.add("hidden");
+document.getElementById("menu").classList.remove("hidden");
+
+}
+
+}
+
+function backMenu(){
+
+document.getElementById("game").classList.add("hidden");
+document.getElementById("menu").classList.remove("hidden");
+
+}
+
+function saveGame(){
+
+if(!players.length)return;
+
+let data={players,current,dice,rolling,finished,sixCount};
+
+localStorage.setItem("ludoSavedGame",JSON.stringify(data));
+
+alert("गेम सेव हो गया!");
+
+}
+
+function toggleTheme(){
+
+document.body.classList.toggle("light");
+
+localStorage.setItem(
+"ludoTheme",
+document.body.classList.contains("light")?"light":"dark"
+);
+
+}
+
+if(localStorage.getItem("ludoTheme")==="light"){
+
+document.body.classList.add("light");
+
+}
+
+function loadSavedGame(){
+
+try{
+
+let data=JSON.parse(localStorage.getItem("ludoSavedGame"));
+
+if(!data||!Array.isArray(data.players))return;
+
+players=data.players;
+current=data.current;
+dice=0;
+rolling=false;
+finished=false;
+sixCount=0;
+
+createBoard();
+
+document.getElementById("menu").classList.add("hidden");
+document.getElementById("game").classList.remove("hidden");
+
+render();
+updatePlayers();
+updateStatus();
+updateScores();
+
+alert("Saved Game Loaded!");
+
+}catch(e){
+
+alert("Saved Game नहीं खुल सका।");
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
